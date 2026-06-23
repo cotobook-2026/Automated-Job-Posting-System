@@ -12,7 +12,7 @@ export async function fillTemplate(data: JobPosting): Promise<Buffer> {
   const ws = wb.worksheets[0];
 
   for (const f of FIELDS) {
-    const value = (data[f.key] ?? '').toString().trim();
+    const value = (data[f.id] ?? '').toString().trim();
     if (!value) continue; // 受領情報に無い項目は空欄のまま（推測で埋めない）
     const cell = ws.getCell(f.cell);
     cell.value = value;
@@ -27,7 +27,7 @@ export function buildCsv(data: JobPosting): Buffer {
   const esc = (s: string) => '"' + (s ?? '').replace(/"/g, '""') + '"';
   const lines = ['項目,内容'];
   for (const f of FIELDS) {
-    lines.push(`${esc(f.label)},${esc((data[f.key] ?? '').toString())}`);
+    lines.push(`${esc(f.label)},${esc((data[f.id] ?? '').toString())}`);
   }
   const body = lines.join('\r\n');
   return Buffer.concat([Buffer.from([0xef, 0xbb, 0xbf]), Buffer.from(body, 'utf-8')]);

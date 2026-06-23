@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fillTemplate, buildCsv } from '@/lib/template';
-import { buildBaseFilename, emptyJobPosting, FIELDS, JobPosting } from '@/lib/fields';
+import { buildBaseFilename, COMPANY_NAME_ID, emptyJobPosting, FIELDS, JobPosting } from '@/lib/fields';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -10,13 +10,13 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const format: string = body.format === 'csv' ? 'csv' : 'xlsx';
     const title: string = body.title || '';
-    const company: string = body.company || (body.data && body.data['企業名']) || '';
+    const company: string = body.company || (body.data && body.data[COMPANY_NAME_ID]) || '';
 
     // 既知フィールドのみ受け付ける（不正キー混入を防止）
     const data: JobPosting = emptyJobPosting();
     for (const f of FIELDS) {
-      const v = body?.data?.[f.key];
-      data[f.key] = v == null ? '' : String(v);
+      const v = body?.data?.[f.id];
+      data[f.id] = v == null ? '' : String(v);
     }
 
     const base = buildBaseFilename(title, company);

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateJobPosting, SourceInput } from '@/lib/anthropic';
 import { extractExcelText, fetchUrlText } from '@/lib/extract';
-import { buildBaseFilename } from '@/lib/fields';
+import { buildBaseFilename, COMPANY_NAME_ID } from '@/lib/fields';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60; // Vercel Hobby 上限。Claude 応答に余裕を持たせる
@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
     }
 
     const data = await generateJobPosting(input);
-    const company = companyHint.trim() || data['企業名'] || '';
+    const company = companyHint.trim() || data[COMPANY_NAME_ID] || '';
     const baseFilename = buildBaseFilename(title, company);
 
     return NextResponse.json({ data, company, title, baseFilename });

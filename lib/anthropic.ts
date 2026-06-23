@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { FIELDS, JobPosting, emptyJobPosting, FieldKey } from './fields';
+import { FIELDS, JobPosting, emptyJobPosting } from './fields';
 
 const MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-6';
 
@@ -16,7 +16,7 @@ export interface SourceInput {
 
 function buildSystemPrompt(): string {
   const fieldList = FIELDS.map(
-    (f) => `- ${f.key}（最大約${f.maxLen}字${f.hint ? '／' + f.hint : ''}）`
+    (f) => `- ${f.id}（${f.label}・最大約${f.maxLen}字${f.hint ? '／' + f.hint : ''}）`
   ).join('\n');
 
   return `あなたは株式会社コトブックの採用担当者を補助し、受領資料から求人票を作成するアシスタントです。
@@ -33,24 +33,24 @@ function buildSystemPrompt(): string {
 - ユーザー指定の企業名がある場合は、それを「企業名」フィールドに優先採用する。
 - 指定が無い場合のみ、資料から企業名を抽出する。判別できなければ "" にする。
 
-【記入する項目】
+【記入する項目（キー：日本語名）】
 ${fieldList}
 
-必ず submit_job_posting ツールを使って、全フィールドを文字列で返すこと。該当情報が無いフィールドは "" とする。`;
+必ず submit_job_posting ツールを使って、上記キーで全フィールドを文字列で返すこと。該当情報が無いフィールドは "" とする。`;
 }
 
 function buildSchema() {
   const properties: Record<string, any> = {};
   for (const f of FIELDS) {
-    properties[f.key] = {
+    properties[f.id] = {
       type: 'string',
-      description: `${f.key}（最大約${f.maxLen}字。資料に無ければ空文字）`,
+      description: `${f.label}（最大約${f.maxLen}字。資料に無ければ空文字）`,
     };
   }
   return {
     type: 'object' as const,
     properties,
-    required: FIELDS.map((f) => f.key),
+    required: FIELDS.map((f) => f.id),
   };
 }
 
@@ -121,8 +121,8 @@ export async function generateJobPosting(input: SourceInput): Promise<JobPosting
   const raw = toolUse.input as Record<string, unknown>;
   const result = emptyJobPosting();
   for (const f of FIELDS) {
-    const v = raw[f.key];
-    result[f.key as FieldKey] = v == null ? '' : String(v).trim();
+    const v = raw[f.id];
+    result[f.id] = v == null ? '' : String(v).trim();
   }
   return result;
 }

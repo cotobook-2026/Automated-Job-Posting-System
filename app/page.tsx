@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { FIELDS, FieldKey } from '@/lib/fields';
+import { FIELDS, COMPANY_NAME_ID } from '@/lib/fields';
 
 type JobData = Record<string, string>;
 
@@ -44,7 +44,7 @@ export default function Home() {
     }
   }
 
-  function updateField(key: FieldKey, value: string) {
+  function updateField(key: string, value: string) {
     setData((d) => (d ? { ...d, [key]: value } : d));
   }
 
@@ -56,7 +56,7 @@ export default function Home() {
       const res = await fetch('/api/export', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data, title, company: company || data['企業名'], format }),
+        body: JSON.stringify({ data, title, company: company || data[COMPANY_NAME_ID], format }),
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
@@ -165,7 +165,7 @@ export default function Home() {
           </div>
           <div className="preview-grid">
             {FIELDS.map((f) => (
-              <FieldRow key={f.key} label={f.label} value={data[f.key] || ''} onChange={(v) => updateField(f.key, v)} />
+              <FieldRow key={f.id} label={f.label} value={data[f.id] || ''} onChange={(v) => updateField(f.id, v)} />
             ))}
           </div>
 
